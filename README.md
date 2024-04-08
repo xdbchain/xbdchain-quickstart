@@ -107,7 +107,7 @@ The option takes a comma-separated list of service names to enable. To enable al
 --enable core,horizon
 ```
 
-To run only select services, simply specify only those services. For example, to enable the core, use:
+To run only specific services, simply specify only those services. For example, to enable the core, use:
 
 ```
 --enable core
@@ -126,14 +126,13 @@ For example:
 $ curl http://localhost:8000/friendbot?addr=G...
 ```
 
-_Note: In local mode a local friendbot is running. In futurenet modes requests to the local `:8000/friendbot` endpoint will be proxied to the friendbot deployments for the respective network._
+_Note: In local mode, a local friendbot is running. In futurenet mode, requests to the local `:8000/friendbot` endpoint will be proxied to the friendbot deployments for the respective network._
 
 ### Building Custom Images
 
 To build a quickstart image with custom or specific versions of stellar-core,
-horizon, etc, use the `Makefile`. The following parameters can be specified to
-customize the version of each component, and for stellar-core the features it is
-built with.
+horizon, etc, use the `Makefile`. You can specify the following parameters to 
+customize the version of each component.
 
 - `TAG`: The docker tag to assign to the build. Default `latest`.
 - `CORE_VER`: The version of stellar-core to use.
@@ -151,26 +150,26 @@ make build \
 
 ### Background vs. Interactive containers
 
-Docker containers can be run interactively (using the `-it` flags) or in a detached, background state (using the `-d` flag).  Many of the example commands below use the `-it` flags to aid in debugging but in many cases you will simply want to run a node in the background.  It's recommended that you use the use [the tutorials at docker](https://docs.docker.com/engine/tutorials/usingdocker/) to familiarize yourself with using docker.
+Docker containers can be run interactively (using the `-it` flags) or in a detached, background state (using the `-d` flag).  Many of the example commands below use the `-it` flags to aid in debugging but in many cases you will simply want to run a node in the background.  It's recommended that you refer to [the tutorials at docker](https://docs.docker.com/engine/tutorials/usingdocker/) to familiarize yourself with using Docker.
 
 ### Ephemeral mode
 
-Ephermeral mode is provided to support development and testing environments.  Every time you start a container in ephemeral mode, the database starts empty and a default configuration file will be used for the appropriate network.
+Ephemeral mode is provided to support development and testing environments.  Every time you start a container in ephemeral mode, the database starts empty and a default configuration file will be used for the appropriate network.
 
-Starting an ephemeral node is simple, just craft a `docker run` command to launch the appropriate image but *do not mount a volume*.  To craft your docker command, you need the network name you intend to run against and the flags to expose the ports your want available (See the section named "Ports" below to learn about exposing ports).  Thus, launching a testnet node while exposing horizon would be:
+Starting an ephemeral node is simple, just craft a `docker run` command to launch the appropriate image but *do not mount a volume*.  To craft your docker command, you need the network name you intend to run against.  Additionally, make sure to include the necessary flags to expose the desired ports. (Refer to the section named "Ports" below for guidance on exposing ports).  Thus, launching a futurenet node while exposing horizon would be:
 
 ```shell
 $ docker run --rm -it -p "8000:8000" --name xdbchain ghcr.io/xdbfoundation/xdbchain-quickstart:latest --futurenet
 ```
 
-As part of launching, an ephemeral mode container will generate a random password for securing the postgresql service and will output it to standard out.  You may use this password (provided you have exposed the postgresql port) to access the running postgresql database (See the section "Accessing Databases" below).
+As part of the launch process, an ephemeral mode container will generate a random password to secure the PostgreSQL service and output it to standard out. You may use this password (provided you have exposed the PostgreSQL port) to access the running PostgreSQL database (See the section "Accessing Databases" below).
 
 
 ### Persistent mode
 
-In comparison to ephemeral mode, persistent mode is more complicated to operate, but also more powerful.  Persistent mode uses a mounted host volume, a directory on the host machine that is exposed to the running docker container, to store all database data as well as the configuration files used for running services. This allows you to manage and modify these files from the host system.
+In comparison to ephemeral mode, persistent mode is more complicated to operate but also more powerful. Persistent mode utilizes a mounted host volume, which is a directory on the host machine exposed to the running Docker container. This volume stores all database data as well as the configuration files used for running services. This setup enables you to manage and modify these files directly from the host system
 
-Note that there is no guarantee that the organization of the files of the volume will remain consistent between releases of the image, that occur on every commit to the stellar/quickstart repository. At anytime new files may be added, old files removed, or dependencies and references between them changed. For this reason persistent mode is primarily intended for running short lived test instances for development. If consistency is required over any period of time use [image digest references] to pin to a specific build.
+It's important to note that the organization of files within the volume may not remain consistent between releases of the image, which occur with every commit to the xdbfoundation/xdbchain-quickstart repository. New files may be added, old files removed, or dependencies and references between them may change. Therefore, persistent mode is primarily intended for running short-lived test instances for development purposes. If consistency is required over any period of time, consider using image digest references to pin to a specific build
 
 [image digest references]: https://docs.docker.com/engine/reference/run/#imagedigest
 
@@ -223,13 +222,13 @@ The peer port for stellar-core however can be exposed, and ideally would be rout
 
 ## Accessing and debugging a running container
 
-There will come a time when you want to inspect the running container, either to debug one of the services, to review logs, or perhaps some other administrative tasks.  We do this by starting a new interactive shell inside the running container:
+There will come a time when you want to inspect the running container, either to debug one of the services, review logs, or perform other administrative tasks. This can be done by starting a new interactive shell inside the running container:
 
 ```
 $ docker exec -it xdbchain /bin/bash
 ```
 
-The command above assumes that you launched your container with the name `xdbchain`; Replace that name with whatever you chose if different.  When run, it will open an interactive shell running as root within the container.
+The command above assumes that you launched your container with the name `xdbchain`. Replace that name with whatever you chose if different. When executed, it will open an interactive shell running as root within the container.
 
 ### Restarting services
 
@@ -263,6 +262,6 @@ Alternatively, to tail all logs into the container's output for all services, ap
 
 ### Accessing databases
 
-The point of this project is to make running stellar's software within your own infrastructure easier, so that your software can more easily integrate with the XDB CHAIN network.  In many cases, you can integrate with horizon's REST API, but often times you'll want direct access to the database either horizon or stellar-core provide.  This allows you to craft your own custom sql queries against the stellar network data.
+The point of this project is to make running stellar's software within your own infrastructure easier, so that your software can more easily integrate with the XDB CHAIN network.  In many cases, you can interact with Horizon's REST API. However, there are times when direct access to the database provided by either Horizon or Stellar-core is necessary. This allows you to create custom SQL queries against the XDB CHAIN network data.
 
-This image manages two postgres databases:  `core` for stellar-core's data and `horizon` for horizon's data.  The username to use when connecting with your postgresql client or library is `stellar`. The password to use is dependent upon the mode your container is running in:  Persistent mode uses a password supplied by you and ephemeral mode generates a password and prints it to the console upon container startup.
+This image manages two PostgreSQL databases: `core` for Stellar-core's data and `horizon` for Horizon's data. When connecting with your PostgreSQL client or library, use the username stellar. The password to use depends on the container's mode: Persistent mode requires a password supplied by you, while ephemeral mode generates a password and prints it to the console upon container startup.
