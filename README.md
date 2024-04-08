@@ -1,6 +1,6 @@
 # XDB CHAIN Quickstart Docker Image
 
-This docker image provides a simple way to run stellar-core and horizon locally for development and testing.
+This docker image provides a simple way to run stellar-core and horizon locally for development and testing using XDB CHAIN network.
 
 **Looking for instructions for how to run stellar-core or horizon in production? Take a look at the docs [here](https://developers.xdbchain.com/posts/network-core/).**
 
@@ -18,13 +18,39 @@ The image uses the following software:
 
 To use this project successfully, you should first decide a few things:
 
-First, decide whether you want your container to be part of the public, production XDB CHAIN network (referred to as the _pubnet_) or the test network (called futurenet) that we recommend you use while developing software because you need not worry about losing money on the futurenet. Alternatively, choose to run a local network (called local) which allows you to run your own acellerated private XDB CHAIN network for testing.
+First, decide whether you want your container to be part of the public, production XDB CHAIN network (referred to as the _pubnet_) or the test network (called futurenet) that we recommend you to use while developing software because yoy won't need to worry about losing money on the futurenet. Alternatively, choose to run a local network (called local) which allows you to run your own acellerated private XDB CHAIN network for testing.
 
-Next, you must decide whether you will use a docker volume or not.  When not using a volume, we say that the container is in _ephemeral mode_, that is, nothing will be persisted between runs of the container. _Persistent mode_ is the alternative, which should be used in the case that you need to either customize your configuration (such as to add a validation seed) or would like avoid a slow catchup to the XDB CHAIN network in the case of a crash or server restart.  We recommend persistent mode for anything besides a development or test environment.
+Next, you must decide whether you will use a docker volume or not.  When you are not using a volume, we say that the container is in _ephemeral mode_, and nothing will be persisted between runs of the container. _Persistent mode_ is an alternative that should be used if you need to customize your configuration (such as adding a validation seed) or would like to avoid a slow catch-up to the XDB CHAIN network in the event of a crash or server restart  We recommend using persistent mode for everything except development or test environments.
 
-Finally, you must decide what ports to expose. The software in these images listen on 4 ports, each of which you may or may not want to expose to the network your host system is connected to.  A container that exposes no ports isn't very useful, so we recommend at a minimum you expose the horizon http port.  See the "Ports" section below for a more nuanced discussion regarding the decision about what ports to expose.
+Finally, you must decide what ports to expose. The software in these images listen to 4 ports, each of which you may or may not want to expose to the network your host system is connected to.  A container that exposes no ports isn't very useful, so we recommend that you, at a minimum, expose the horizon HTTP port.  See the "Ports" section below for a more nuanced discussion regarding the decision about what ports to expose.
 
 After deciding on the questions above, you can setup your container.  Please refer to the appropriate section below based upon what mode you will run the container in.
+
+## Example launch commands
+
+Below is a list of various ways you might want to launch the quickstart container annotated to illustrate what options are enabled.  It's also recommended that you should learn and get familiar with the docker command.
+
+*Launch an ephemeral local only dev/test network:*
+```
+$ docker run -d -p "8000:8000" --name xdbchain ghcr.io/xdbfoundation/xdbchain-quickstart:latest --local
+```
+
+*Launch an ephemeral testnet node in the foreground:*
+```
+$ docker run --rm -it \
+    -p "8000:8000" \
+    --name xdbchain \
+    ghcr.io/xdbfoundation/xdbchain-quickstart:latest --futurenet
+```
+
+*Setup a new persistent node using the host directory `/str`:*
+```
+$ docker run -it --rm \
+    -p "8000:8000" \
+    -v "/str:/opt/stellar" \
+    --name xdbchain \
+    ghcr.io/xdbfoundation/xdbchain-quickstart:latest --futurenet
+```
 
 ### Network Options
 
@@ -32,13 +58,13 @@ Provide either `--pubnet`, `--futurenet` or `--local` as a command line flag whe
 
 #### `--pubnet`
 
-In public network mode, the node will join the public, production Stellar network.
+In public network mode, the node will join the public, production XDB CHAIN network.
 
-_Note: In pubnet mode the node will consume more disk, memory, and CPU resources because of the size of the ledger and frequency of transactions. If disk space warnings occur and the image is being used on a Docker runtime that uses a VM, like that of macOS and Windows, the VM may need to have its disk space allocation increased._
+_Note: In pubnet mode the node will consume more disk, memory, and CPU resources because of the size of the network history and frequency of transactions._
 
 #### `--futurenet`
 
-In test network mode, the node will join the network that developers use while developing software. Use the [XDB CHAIN Laboratory](https://laboratory.xdbchain.com/#?network=futurenet) to create an account on the futurenet network.
+In test network mode, the node will join the network that developers use while developing software. Use the [XDB CHAIN Laboratory](https://laboratory.xdbchain.com/#?network=futurenet) to create an account on the FutureNet network.
 
 #### `--local`
 
@@ -46,17 +72,17 @@ In local network mode, you can optionally pass:
 
 - `--protocol-version {version}` to run a specific protocol version (defaults to latest version).
 
-- `--limits {limits}` to configure specific resource limits to one of:
+- `--limits {limits}` to configure specific resource limits of the network to one of:
    - `default` leaves limits set extremely low which is stellar-core's default configuration
    - `futurenet` sets limits to match those used on futurenet (the default quickstart configuration)
    - `unlimited` sets limits to the maximum resources that can be configured
 
-The network passphrase of the network defaults to:
+The network passphrase of the local network defaults to:
 ```
 Standalone Network ; February 2017
 ```
 
-Set the network passphrase in the SDK or tool you're using. If an incorrect network passphrase is used in clients signing transactions, the transactions will fail with a bad authentication error.
+Set the network passphrase in the SDK or tool you're using. Transactions will fail with a bad authentication error if an incorrect network passphrase is used for signing.
 
 The root account of the network is fixed to:
 ```
@@ -240,30 +266,3 @@ Alternatively, to tail all logs into the container's output for all services, ap
 The point of this project is to make running stellar's software within your own infrastructure easier, so that your software can more easily integrate with the XDB CHAIN network.  In many cases, you can integrate with horizon's REST API, but often times you'll want direct access to the database either horizon or stellar-core provide.  This allows you to craft your own custom sql queries against the stellar network data.
 
 This image manages two postgres databases:  `core` for stellar-core's data and `horizon` for horizon's data.  The username to use when connecting with your postgresql client or library is `stellar`. The password to use is dependent upon the mode your container is running in:  Persistent mode uses a password supplied by you and ephemeral mode generates a password and prints it to the console upon container startup.
-
-
-## Example launch commands
-
-Below is a list of various ways you might want to launch the quickstart container annotated to illustrate what options are enabled.  It's also recommended that you should learn and get familiar with the docker command.
-
-*Launch an ephemeral local only dev/test network:*
-```
-$ docker run -d -p "8000:8000" --name xdbchain ghcr.io/xdbfoundation/xdbchain-quickstart:latest --local
-```
-
-*Launch an ephemeral testnet node in the foreground:*
-```
-$ docker run --rm -it \
-    -p "8000:8000" \
-    --name xdbchain \
-    ghcr.io/xdbfoundation/xdbchain-quickstart:latest --futurenet
-```
-
-*Setup a new persistent node using the host directory `/str`:*
-```
-$ docker run -it --rm \
-    -p "8000:8000" \
-    -v "/str:/opt/stellar" \
-    --name xdbchain \
-    ghcr.io/xdbfoundation/xdbchain-quickstart:latest --futurenet
-```
